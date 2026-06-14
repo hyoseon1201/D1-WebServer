@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Table(name = "characters")
 @Getter
 @NoArgsConstructor
-public class Character {
+public class GameCharacter {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,7 +34,7 @@ public class Character {
         createdAt = LocalDateTime.now();
     }
 
-    public Character(Long accountId, String name, String classType) {
+    public GameCharacter(Long accountId, String name, String classType) {
         this.accountId = accountId;
         this.name = name;
         this.classType = classType;

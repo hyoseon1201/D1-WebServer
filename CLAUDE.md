@@ -40,6 +40,7 @@ Controller → Service → Repository → Entity
 ## 3. Entity 규칙
 
 - **외래키(FK) 사용 안 함** (운영 정책). 연관관계는 `@ManyToOne` 등 매핑 대신 **ID 필드(`Long accountId`)로 직접 보유**, 조회는 `findByAccountId` 같은 인덱스 기반 쿼리. `@JoinColumn`/`@OneToMany` 등 관계 매핑 도입 금지.
+- **참조 무결성은 애플리케이션(Service 계층)이 책임진다.** DB FK 제약이 없으므로, 부모 삭제 시 자식 레코드 정리·존재하지 않는 부모 ID 참조 방지 등을 Service 로직 + 트랜잭션으로 직접 보장할 것. cascade 저장/삭제 같은 JPA 편의 기능은 쓸 수 없으므로 명시적으로 처리.
 - **Setter 금지.** `@Getter`만 사용(`@Setter`/`@Data` 금지). 값 변경은 의미 있는 비즈니스 메서드로(`stats.update(...)`, `slot.updateItem(...)`).
 - **기본 생성자는 `protected`/`public` `@NoArgsConstructor`** (JPA 요구), 실제 생성은 필수값을 받는 명시적 생성자로.
 - 컬럼명은 `@Column(name = "snake_case")`로 SQL과 정확히 일치시킬 것. 필드는 camelCase.
@@ -65,7 +66,7 @@ Controller → Service → Repository → Entity
 - 비밀번호는 `BCryptPasswordEncoder`로 해시. 평문 저장·로그 출력 금지.
 - JWT secret/만료시간은 `application.yaml`의 `jwt.*` (운영은 환경변수로 주입, 하드코딩 금지).
 - **데디서버 ↔ 웹서버 통신은 별도 API Key 인증** (클라이언트 JWT와 분리). `verify-session` 등 서버 전용 엔드포인트는 일반 사용자 토큰으로 접근 불가.
-- Spring Security 설정은 `config/SecurityConfig`에 집중. 엔드포인트별 인가 규칙 명시.
+- **Spring Security 풀 스타터 미사용** (의도적). `spring-security-crypto`(BCrypt만) + 직접 만든 JWT 인증으로 처리. 인증은 `config/JwtInterceptor`(HandlerInterceptor)가 `Authorization: Bearer` 헤더 검증 → `accountId`를 request attribute에 저장. 등록은 `config/WebConfig`에서 `/api/**` 적용, `/api/auth/**` 제외. 컨트롤러는 `@RequestAttribute("accountId")`로 사용자 식별.
 
 ## 7. 예외 처리
 
@@ -109,3 +110,6 @@ FK 없음, 모든 자식 테이블은 `character_id` 인덱스로 연결.
 | 날짜 | 요약 |
 |------|------|
 | 06-14 | 프로젝트 생성(Spring Boot 4.1.0). docker-compose MySQL 셋업. 스키마 8테이블(`init/01_schema.sql`, FK 없음). Entity 8종 작성. `ddl-auto: validate` 통과, DB 연결 확인. |
+| 06-14 | Repository 8종(테이블별, 복합키는 `findById_CharacterId`). 깡 JWT 인증 구현(Spring Security 풀 스타터 제거 → `spring-security-crypto` BCrypt만 + `JwtInterceptor`). Auth 계층 완성: `AuthController`(/api/auth/register·login) → `AuthService` → `JwtUtil`. `GlobalExceptionHandler`+`ApiException`+`ErrorResponse`. 회원가입/로그인/중복/오인증 전부 테스트 통과, BCrypt 해시 저장 확인. |
+| 06-15 | 캐릭터 API 구현: `GET /api/characters`(목록), `POST /api/characters`(생성). `character_stats`는 생성 시 INSERT 안 함 — 첫 게임 접속 시 언리얼 ScalableFloat 초기값으로 GAS 세팅 후 save API로 저장(SSOT=언리얼). 이름 중복 409 처리. |
+| 06-15 | 데디서버 전용 API 구현: `ServerApiKeyInterceptor`(`X-Server-Api-Key` 헤더, `/api/server/**` 적용), `POST /api/server/characters/{id}/verify-session`(캐릭터 데이터 전체 로드, stats=null이면 신규), `POST /api/server/characters/{id}/save`(전체 일괄 저장, delete+insert 방식). DTO 6종(StatsDto/SkillDto/SkillSlotDto/InventoryItemDto/EquippedItemDto/QuickSlotDto). |
