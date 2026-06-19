@@ -17,7 +17,10 @@ server:
 
 jwt:
   secret: d1-jwt-secret-key-change-in-production-must-be-256bit
-  expiration: 86400000  # 24시간 (ms)
+  expiration: 86400000        # 로그인 토큰 24시간 (ms)
+  session-expiration: 60000   # 세션 토큰 60초 (ms) — 접속 직전 1회용
 
 game-server:
   api-key: d1-server-api-key-change-in-production
+  town-address: 127.0.0.1:7777     # MVP 고정 Town 데디서버 주소
+  dungeon-address: 127.0.0.1:7778  # MVP 고정 Dungeon 데디서버 주소
