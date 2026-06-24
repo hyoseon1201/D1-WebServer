@@ -24,3 +24,4 @@ game-server:
   api-key: d1-server-api-key-change-in-production
   town-address: 127.0.0.1:7777     # MVP 고정 Town 데디서버 주소
   dungeon-address: 127.0.0.1:7778  # MVP 고정 Dungeon 데디서버 주소
+  hunting-ground-address: 127.0.0.1:7779  # MVP 고정 HuntingGround 데디서버 주소

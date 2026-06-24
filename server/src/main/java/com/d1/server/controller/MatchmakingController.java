@@ -22,4 +22,12 @@ public class MatchmakingController {
             @Valid @RequestBody MatchmakingRequest request) {
         return ResponseEntity.ok(matchmakingService.enterTown(accountId, request.characterId()));
     }
+
+    // 부하 테스트용 봇 클라이언트가 Town을 거치지 않고 바로 HuntingGround로 접속할 때 사용
+    @PostMapping("/huntingground")
+    public ResponseEntity<MatchmakingResponse> enterHuntingGround(
+            @RequestAttribute("accountId") Long accountId,
+            @Valid @RequestBody MatchmakingRequest request) {
+        return ResponseEntity.ok(matchmakingService.enterHuntingGround(accountId, request.characterId()));
+    }
 }
